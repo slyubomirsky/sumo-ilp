@@ -136,10 +136,10 @@ To exclude ties, we amend the condition to `s[i][D-1] > s[j][D-1]` (or `s[i][D-1
 
 While most championships are decided on the final day and some go to a playoff, sometimes a sumo championship is mathematically secure before the final day. The championship is mathematically secure up to a tie on day `d` if one wrestler has at least as many wins as the other wrestlers have bouts remaining (change "at least" to "strictly more" to eliminate ties).
 
-The best possible score wrestler `i` can have after day `d` is `s[i][d] + sum_{0 <= j < i} f[j][i][d] + sum_{i < j < N} f[i][j][d]`
+The best possible score wrestler `i` can have after day `d` is `s[i][d] + sum_{d < e <= D} sum_{0 <= j < i} f[j][i][e] + sum_{i < j < N} f[i][j][e]`
 (assuming `i` wins all his remaining bouts).
 Thus to specify that the championship is mathematically secure up to a tie for wrestler `i` with score `S` on day `d`,
-we add a constraint that for all `0 <= k < N` where `k != i`, `s[i][d] >= s[k][d] + sum_{0 <= j < i} f[j][k][d] + sum_{i < j < N} f[i][k][d]`
+we add a constraint that for all `0 <= k < N` where `k != i`, `S >= s[k][d] + sum{d < e <= D} sum_{0 <= j < k} f[j][k][e] + sum_{k < j < N} f[k][j][e]`
 (add `+ 1` to the left-hand-side to exclude ties).
 
 #### Optimizing for Scores
