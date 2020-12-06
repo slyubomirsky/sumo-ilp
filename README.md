@@ -134,7 +134,7 @@ To exclude ties, we amend the condition to `s[i][D-1] > s[j][D-1]` (or `s[i][D-1
 
 #### Mathematically Secure Championship
 
-While most championships are decided on the final day and some go to a playoff, sometimes a sumo championship is mathematically secure before the final day. The championship is mathematically secure up to a tie on day `d` if one wrestler has at least as many wins as the other wrestlers have bouts remaining (change "at least" to "strictly more" to eliminate ties).
+While most championships are decided on the final day and some go to a playoff, sometimes a sumo championship is mathematically secure before the final day. The championship is mathematically secure up to a tie on day `d` if one wrestler has at least as many wins as the other wrestlers have wins plus bouts remaining (change "at least" to "strictly more" to eliminate ties).
 
 The best possible score wrestler `i` can have after day `d` is `s[i][d] + sum_{d < e <= D} sum_{0 <= j < i} f[j][i][e] + sum_{i < j < N} f[i][j][e]`
 (assuming `i` wins all his remaining bouts).
