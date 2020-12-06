@@ -139,7 +139,7 @@ While most championships are decided on the final day and some go to a playoff, 
 The best possible score wrestler `i` can have after day `d` is `s[i][d] + sum_{d < e <= D} sum_{0 <= j < i} f[j][i][e] + sum_{i < j < N} f[i][j][e]`
 (assuming `i` wins all his remaining bouts).
 Thus to specify that the championship is mathematically secure up to a tie for wrestler `i` with score `S` on day `d`,
-we add a constraint that for all `0 <= k < N` where `k != i`, `S >= s[k][d] + sum{d < e <= D} sum_{0 <= j < k} f[j][k][e] + sum_{k < j < N} f[k][j][e]`
+we add a constraint that for all `0 <= k < N` where `k != i`, `S >= s[k][d] + sum{d < e <= D} (sum_{0 <= j < k} f[j][k][e] + sum_{k < j < N} f[k][j][e])`
 (add `+ 1` to the left-hand-side to exclude ties).
 
 #### Optimizing for Scores
@@ -205,7 +205,7 @@ Query: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflic
 
 I include the resulting schedule [here](schedules/champ_with_9.md), which took 105 seconds to solve. Amusingly it includes a perfect opening week from Hakuho.
 
-### Biggest tie with an 8-7 champsionship: 39 wrestlers
+### Biggest tie with an 8-7 championship: 39 wrestlers
 
 We can conclude that at least one wrestler must have a winning score, since if every wrestler had 7 or fewer wins
 at the end of a 15-day tournament with 21 bouts a day, the total number of wins would be at most `42*7` while
