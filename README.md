@@ -208,8 +208,8 @@ I include the resulting schedule [here](schedules/champ_with_9.md), which took 1
 ### Biggest tie with an 8-7 champsionship: 39 wrestlers
 
 We can conclude that at least one wrestler must have a winning score, since if every wrestler had 7 or fewer wins
-at the end of a 15-day tournament with 21 bouts a day, the total number of wins would be at most 42*7 while
-the total number of bouts is 15*21. However, it is possible for no wrestler to have more than the just the minimum winning score,
+at the end of a 15-day tournament with 21 bouts a day, the total number of wins would be at most `42*7` while
+the total number of bouts is `15*21`. However, it is possible for no wrestler to have more than the just the minimum winning score,
 8-7.
 
 I used the following query to try to optimize for the biggest tie with an 8-7 championship score: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 1200 champ --score 8 --max-tie`
