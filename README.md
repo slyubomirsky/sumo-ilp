@@ -36,10 +36,12 @@ In the examples below, I give the commands I used. The default settings correspo
 You can generate tournaments for the second division (Juryo) by setting `N` to 28.
 
 I made the encoding general enough to handle the divisions below Juryo, 
-where wrestlers fight 7 times per tournament and so don't fight every day, 
-but I was unable to get the solver to generate solutions using the real sizes of the lower divisions
-within 5 minutes so I never actually tried these (for the third division, Makushita, `N` is 120, `D` is 15, `M` is 7, `UB` is 30, and `LB` is 20).
-I do know the encoding works for `M != D` because I generated schedules using `N` at 42, `D` at 15, `M` at 7, and `LB` at 10.
+where wrestlers fight 7 times per tournament and so don't fight every day,
+but the real sizes of the lower divisions seem to be very hard on the solver so I did not explore these extensively.
+For example, I generated [this schedule](schedules/makushita_example.md) for division 3, Makushita,
+with the following query: `python sumo_query.py --N 120 --LB 20 --UB 30 --M 7 --time 3600 generate`,
+taking 1414 seconds, compared to under a minute for a top-division schedule. 
+(I did not include wrestler names and ranks because I was too lazy to manually compose a list or scrape one; my apologies.)
 
 For cosmetic purposes, I included files encoding wrestler names and ranks for Makuuchi and Juryo [here](names_files)
 per the November 2020 ranks.
@@ -218,7 +220,16 @@ I include the resulting schedule [here](schedules/champ_with_8.md), which took 8
 
 All but 3 wrestlers ended up tied for the lead. I imagine the rankings committee would have an easy time later: Keep almost everyone in their current ranks, except for the unlucky saps (one's an ozeki and so would only be kadoban). The PR officials might have a harder time.
 
-### Biggest tie with a 15-0 score: 21
+### Smallest tie with an 8-7 championship: 21 wresters
+
+Since 8-7 is the smallest possible winning score, I was similarly curious to see what would be the smallest possible playoff for it
+rather than the largest possible. `N/2` seems like a neat enough solution that there is probably an easy way to explicitly name a scheme for generating such a tournament.
+
+I used the following query to try to optimize for the smallest tie with an 8-7 championship: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 1200 champ --score 8 --min-tie`
+
+I include the resulting schedule [here](schedules/smallest_playoff_8.md), which took 246 seconds to solve.
+
+### Biggest tie with a 15-0 score: 21 wresters
 
 Championships with perfect scores are very uncommon and I do not know if there has ever been a playoff between 15-0 wrestlers (I didn't check),
 so I was curious to see how many wrestlers could simultaneously attain a perfect score over 15 days.
