@@ -13,9 +13,8 @@ while still abiding by the "each wrestler fights once a day, every day" rule.
 In more abstract terms you can phrase this problem as,
 "If you have `N` items, how can you group all `N choose 2` pairs of these items into `N-1` groups
 such that each item appears in each group exactly once?"
-At the bottom of this document, I have an analytic solution to this for `N` that are powers of 2,
-but I do not know how to generalize it to all even `N`.
-I'm sure there is a good algorithm to solve this but I haven't figured it out.
+As it turns out [standard round-robin scheduling algorithms](https://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm)
+should be able to work for this, but I made no effort to look them up and instead spent some time writing all this code instead.
 
 If you are good at combinatorics and have figured out analytic solutions for some of these questions,
 I would love to hear your reasoning (or to learn of a specific algorithm for finding such schedules).
@@ -310,70 +309,3 @@ We can use similar reasoning to the above: Suppose some wrestler `C` has the cha
 Then `C` has at most 10 wins. Up to day 10, there have been 210 bouts and so 210 total wins, of which 200 have been given to other wrestlers.
 On average, wrestlers other than `C` have 4.9 wins, meaning at least one (let's call him `W`) has at least 5 wins. 
 If `C` loses all 5 of his remaining bouts and `W` wins all 5, then `C` and `W` are tied at 10 wins, contradicting the premise.
-
-## Analytic Solution for Round-Robin Schedule when `N = 2^n`
-
-Suppose we have `2^n` items that we want to group into `(2^n)-1` groups
-where each group contains `2^(n-1)` pairs of items, each item appears in each group exactly once,
-and each pair appears exactly once across the groups.
-Let's call this procedure `schedule(items)` and define it inductively.
-
-If `n` is 1, then we have exactly 2 items. There is only one pair that can be formed between them, so return it.
-
-Now suppose that if we call `schedule()` on a list of `2^(n-1)` items, it will return `(2^(n-1))-1` groups of pairs of items
-where each item appears in each group exactly once.
-
-Suppose we have a list of `2^n` items where `n > 1`. We can group the pairs into `(2^n)-1` groups as follows:
-First, split the list down the middle into two columns of `2^(n-1)` items each (we'll call these a "left column" and "right column").
-Put the two columns next to each other, pairing the first item of the left column with the first item of the right column and so on.
-This is one group of pairs. 
-
-Notice that if we "rotate" the right column (move the first item to the second position, etc, 
-moving the last item to the first position) while keeping the left column in place, we produce another group of `2^(n-1)` pairs with all the items appearing exactly once. After the initial columns, we can perform `(2^(n-1))-1` rotations before returning to the initial position: each of these rotations produces a distinct group of pairs where none of the pairs appeared in any prior rotation and each item appears exactly once in each group. Thus, counting the initial split, we have a total of `2^(n-1)` groups that represent all pairings between the two columns.
-
-Now, let us consider pairings _within_ each column. We can take the columns of `2^(n-1)` items 
-and call `schedule()` on those columns to produce `(2^(n-1))-1` groupings of all possible pairs of those items.
-Let us then call `schedule()` on the left column to produce groups of pairs for the left column (we will call these the "left groups") and `schedule()` on the right column to produce pairs for the right column (we will call these the "right groups").
-Each grouping among the left groups contains every item from the left column and each grouping among the right groups contains every item from the right column.
-Thus, if we concatenate a left group with a right group, 
-we will have a group containing every item from the original list, each appearing exactly once.
-
-Thus we can produce another `(2^(n-1))-1` groups for the original list by concatenating 
-the first left group to the first right group, the second left group to the second right group, 
-and so on.
-Combined with the `2^(n-1)` groups produced by the above rotation procedure, we now have a total of `(2^n)-1` groups. &#8718;
-
-I would really like to generalize this proof!
-
-We can implement this procedure in Python as follows:
-```python
-def schedule(items):
-    if len(items) == 0:
-        return []
-    assert len(items) % 2 == 0, "You should only call this with a power of two"
-    if len(items) == 2:
-        return [[(items[0], items[1])]]
-    
-    left_column = [items[2*i] for i in range(len(items)//2)]
-    right_column = [items[2*i+1] for i in range(len(items)//2)]
-    assert len(left_column) == len(right_column)
-
-    def rotate(col):
-        last = col[-1]
-        for i in range(len(col)):
-            col[i], last = last, col[i]
-
-    def combine_cols(col1, col2):
-        return [(col1[i], col2[i]) for i in range(len(col1))]
-
-    rotations = [combine_cols(left_column, right_column)]
-    for i in range(len(right_column) - 1):
-        rotate(right_column)
-        rotations.append(combine_cols(left_column, right_column))
-
-    left_groups = schedule(left_column)
-    right_groups = schedule(right_column)
-    assert len(left_groups) == len(right_groups)
-    concat = [left_groups[i] + right_groups[i] for i in range(len(left_groups))]
-    return rotations + concat
-```
