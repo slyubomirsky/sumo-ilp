@@ -186,7 +186,7 @@ wrestler has 41 possible opponents, so such a round-robin tournament must be 41 
 I used the following query (omitting wins and losses because they're not necessary for the question and make the encoding larger):
 `python sumo_query.py -k 0 -D 41 -M 41 --time 1200 --names names_files/makuuchi_11_2020.json generate`. I omitted the conflicts file because this would prevent certain matchups and it would likely be impossible to schedule it while still meeting the "each wrestler fights exactly once each day" requirement in the top division (without visitors from the second division).
 
-I include the resulting schedule [here](schedules/round_robin.md), which took 567 seconds to solve.
+I include the resulting schedule [here](schedules/round_robin.md), which took 567 seconds to solve. You would be much better off using a normal round-robin scheduling program.
 
 Fun fact: Setting `-k` to 3 (constraining the final 3 fights on the final day to be between the top-rankers)
 caused the solver to sputter. It did not find a solution within an hour and I was not willing to wait.
@@ -261,7 +261,7 @@ Query: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflic
 
 I include the schedule [here](schedules/most_winning.md), which took over 2000 seconds of solver time (yes, it didn't follow the time limit I set). 
 
-The solver warns it cannot guarantee that this is optimal. However, we can see verify that it is not possible for there to be more than 39 winning scores. Suppose there were at least 40 winning scores. That represents at least 320 wins between the wrestlers with those winning scores. The total number of bouts in a 15-day, 21-match-per-day tournament is 315, so this is impossible.
+The solver warns it cannot guarantee that this is optimal. However, we can verify that it is not possible for there to be more than 39 winning scores. Suppose there were at least 40 winning scores. That represents at least 320 wins between the wrestlers with those winning scores. The total number of bouts in a 15-day, 21-match-per-day tournament is 315, so this is impossible.
 
 ### Most losing scores: 39 of 42
 
