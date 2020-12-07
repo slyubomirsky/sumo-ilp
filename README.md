@@ -222,11 +222,11 @@ All but 3 wrestlers ended up tied for the lead. I imagine the rankings committee
 ### Smallest tie with an 8-7 championship: 21 wresters
 
 Since 8-7 is the smallest possible winning score, I was similarly curious to see what would be the smallest possible playoff for it
-rather than the largest possible. `N/2` seems like a neat enough solution that there is probably an easy way to explicitly name a scheme for generating such a tournament.
+rather than the largest possible. In retrospect, the solver result suggests how one can construct such a tournament: Divide the wrestlers into two groups, which we'll call `A` and `B` and pick all matchups from between groups `A` and `B` (you can do this by lining them up in columns and "rotating" the column by one iteration each day). On even days, let's suppose all members of group `A` win their bouts and all members of group `B` lose and on odd days, the opposite is true. Then after day 15, all members of group `A` will have 7 wins and all members of group `B` will have 8 wins.
 
 I used the following query to try to optimize for the smallest tie with an 8-7 championship: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 1200 champ --score 8 --min-tie`
 
-I include the resulting schedule [here](schedules/smallest_playoff_8.md), which took 246 seconds to solve.
+I include the resulting schedule [here](schedules/smallest_playoff_8.md), which took 246 seconds to solve. We can also verify that this is the smallest possible tie with an 8-7 championship: Suppose it were possible to produce a tie of `k < 21` wrestlers at 8-7. Those wrestlers account for `8k` bout victories. The remaining `42-k` wrestlers all have at most 7 victories, so they account for at most `7*(42-k)` bout victories total. The total number of bout victories held by these wrestlers is thus at most `294 + k`. Since `k < 21`, this is at most 314 wins, whereas there are 315 bouts in total: At least 1 bout is not accounted for, giving a contradiction.
 
 ### Biggest tie with a 15-0 score: 21 wresters
 
@@ -239,7 +239,7 @@ never facing off until the monster playoff.
 
 I used the following query to try to optimize for the biggest tie with 15-0 championship score: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 1200 champ --score 15 --max-tie`
 
-I include the resulting schedule [here](schedules/most_perfect.md), which took 921 seconds to solve.
+I include the resulting schedule [here](schedules/most_perfect.md), which took 921 seconds to solve. A larger tie is not possible, as the 21 wrestlers' 15 wins each represent all the bout victories in the entire tournament.
 
 ### All 42 wrestlers at 7-7 on day 14
 
@@ -247,7 +247,7 @@ The bloggers at [Tachiai.org](https://tachiai.org/) like to use the term "Darwin
 wresters who both have a 7-7 record on the final day, since an 8-7 final score means a promotion while a 7-8 score
 means a demotion. I was too lazy to specifically maximize final day faceoffs between 7-7 wrestlers,
 but I did optimize for having the most wrestlers at 7-7 after day 14, whose fates would be determined by their final-day performance.
-As it happens, _every_ bout on this day 15 is a Darwin bout. (Maybe I should have been able to figure this out on paper too.)
+As it happens, _every_ bout on this day 15 is a Darwin bout. (The scheme described above with an `A` group and a `B` group will produce such a schedule, I only realized later.)
 
 Query: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 600 opt-score --max --lower-score 7 --upper-score 7 --day 13`
 
@@ -299,7 +299,7 @@ was infeasible. So day 10 seems to be the earliest that the championship can be 
 
 We can verify this with the following reasoning: Suppose some wrestler `C` is to be the mathematically secure champion on day 9.
 `C`'s score on day 9 is at most 9. Up to day 9 there have been 189 bouts and so 189 total wins. At least 180 of those wins
-have been given to other wrestlers. On average, wrestlers other than C have at least 4.3 wins, which means at least one
+have been given to other wrestlers. On average, wrestlers other than `C` have at least 4.3 wins, which means at least one
 of them must have at least 5 wins; let this wrestler be `W`. If `W` wins all 6 of his remaining bouts and `C` loses all 6
 of his remaining bouts, then `W`'s score is at least 11 while `C` will still have a score of 9.
 
