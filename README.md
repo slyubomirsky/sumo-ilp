@@ -251,7 +251,9 @@ As it happens, _every_ bout on this day 15 is a Darwin bout. (Maybe I should hav
 
 Query: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 600 opt-score --max --lower-score 7 --upper-score 7 --day 13`
 
-I include the schedule [here](schedules/max_tension.md), which took 366 seconds of solver time.
+I include the schedule [here](schedules/max_tension.md), which took 366 seconds of solver time. 
+(The result is largely the same as the "smallest tie with an 8-7 championship" tournament, 
+which I did not inspect very closely, though the solver time required was substantially different.)
 
 ### Most winning scores: 39 of 42
 
