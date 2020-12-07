@@ -294,11 +294,22 @@ I used the following query: `python sumo_query.py -k 0 --time 600 champ --score 
 and, after about 180 seconds, the solver concluded that the linear reduction of the integer linear program
 was infeasible. So day 10 seems to be the earliest that the championship can be mathematically secure up to a tie.
 
+We can verify this with the following reasoning: Suppose some wrestler `C` is to be the mathematically secure champion on day 9.
+`C`'s score on day 9 is at most 9. Up to day 9 there have been 189 bouts and so 189 total wins. At least 180 of those wins
+have been given to other wrestlers. On average, wrestlers other than C have at least 4.3 wins, which means at least one
+of them must have at least 5 wins; let this wrestler be `W`. If `W` wins all 6 of his remaining bouts and `C` loses all 6
+of his remaining bouts, then `W`'s score is at least 11 while `C` will still have a score of 9.
+
 ### Mathematically secure championship (excluding ties) on day 10: Infeasible!
 
 I used the following query: `python sumo_query.py -k 0 --time 600 champ --score 15 --secure 9 --no-ties`.
 After only about 14 seconds, the solver concluded that the linear reduction was infeasible, so day 11
 seems to be the earliest that the championship can be secured outright.
+
+We can use similar reasoning to the above: Suppose some wrestler `C` has the championship mathematically secure, not permitting ties, on day 10.
+Then `C` has at most 10 wins. Up to day 10, there have been 210 bouts and so 210 total wins, of which 200 have been given to other wrestlers.
+On average, wrestlers other than `C` have 4.9 wins, meaning at least one (let's call him `W`) has at least 5 wins. 
+If `C` loses all 5 of his remaining bouts and `W` wins all 5, then `C` and `W` are tied at 10 wins, contradicting the premise.
 
 ## Analytic Solution for Round-Robin Schedule when `N = 2^n`
 
