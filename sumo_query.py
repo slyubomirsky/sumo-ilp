@@ -500,7 +500,7 @@ def champion_query(args):
                 else:
                     m += (score_vars[args.idx][args.secure] >= mip.xsum(best_possible_score))
 
-        if args.max_tie:
+        if args.max_tie or args.min_tie:
             # if we have a variable l s.t. l is 1 iff i's score < the champion's score,
             # then (1-l) is 1 iff i's score >= the champion's score.
             # Since the wrestler's scores are already constrained to be <= the champion's scores,
@@ -509,7 +509,8 @@ def champion_query(args):
                 (1-add_lt_constant_constraint(m, score_vars[i][D-1], champ_score, M))
                 for i in range(N) if i != args.idx
             ]
-            m.objective = mip.maximize(mip.xsum(gte_flags))
+            objective_func = mip.maximize if args.max_tie else mip.minimize
+            m.objective = objective_func(mip.xsum(gte_flags))
         return m
 
     basic_query(args, include_scores=True, additional_constraints=champion_constraints)
@@ -605,6 +606,8 @@ if __name__ == '__main__':
                              help='If set, there will only be a single champion, no playoff.')
     tie_options.add_argument('--max-tie', action='store_true',
                              help='If set, the solver will maximize the number of wrestlers tied for the championship.')
+    tie_options.add_argument('--min-tie', action='store_true',
+                             help='If set, the solver will minimize the number of wrestlers tied for the championship.')
 
     champion.add_argument('--idx', type=int, default=0, help='Gives a wrestler index to fix as the champion (or at least one)')
     champion.add_argument('--score', type=int, required=False, 
