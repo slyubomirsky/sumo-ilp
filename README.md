@@ -259,7 +259,9 @@ This query is slightly semantically different from seeking the maximal tie with 
 
 Query: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 1200 opt-score --max --lower-score 8 --upper-score 15 --day 14`
 
-I include the schedule [here](schedules/most_winning.md), which took over 2000 seconds of solver time (yes, it didn't follow the time limit I set). The solver warns it cannot guarantee that this is optimal.
+I include the schedule [here](schedules/most_winning.md), which took over 2000 seconds of solver time (yes, it didn't follow the time limit I set). 
+
+The solver warns it cannot guarantee that this is optimal. However, we can see verify that it is not possible for there to be more than 39 winning scores. Suppose there were at least 40 winning scores. That represents at least 320 wins between the wrestlers with those winning scores. The total number of bouts in a 15-day, 21-match-per-day tournament is 315, so this is impossible.
 
 ### Most losing scores: 39 of 42
 
@@ -267,7 +269,7 @@ I wonder what sort of reception this tournament would have.
 
 Query: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 600 opt-score --max --lower-score 0 --upper-score 7 --day 14`
 
-I include the schedule [here](schedules/most_losing.md), which took 432 seconds of solver time.
+I include the schedule [here](schedules/most_losing.md), which took 432 seconds of solver time. We can verify that 39 losing scores is optimal by similar reasoning to the above. Suppose there were 40 losing scores. Those 40 wrestlers collectively lost at least 320 bouts, but there are 315 bouts in a tournament.
 
 ### Mathematically secure championship (up to tie) on day 10
 
