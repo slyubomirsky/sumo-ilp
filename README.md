@@ -140,7 +140,7 @@ The best possible score wrestler `i` can have after day `d` is `s[i][d] + sum_{d
 (assuming `i` wins all his remaining bouts).
 Thus to specify that the championship is mathematically secure up to a tie for wrestler `i` with score `S` on day `d`,
 we add a constraint that for all `0 <= k < N` where `k != i`, `S >= s[k][d] + sum{d < e <= D} (sum_{0 <= j < k} f[j][k][e] + sum_{k < j < N} f[k][j][e])`
-(add `+ 1` to the left-hand-side to exclude ties).
+(add `+ 1` to the right-hand side to exclude ties).
 
 #### Optimizing for Scores
 
