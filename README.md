@@ -14,11 +14,10 @@ In more abstract terms you can phrase this problem as,
 "If you have `N` items, how can you group all `N choose 2` pairs of these items into `N-1` groups
 such that each item appears in each group exactly once?"
 As it turns out [standard round-robin scheduling algorithms](https://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm)
-should be able to work for this, but I made no effort to look them up and instead spent some time writing all this code instead.
+should be able to work for this, but I made no effort to look them up and spent some time writing all this code instead.
 
-If you are good at combinatorics and have figured out analytic solutions for some of these questions,
-I would love to hear your reasoning (or to learn of a specific algorithm for finding such schedules).
-Really, I tried thinking about it but didn't get anywhere.
+In many cases, it is easy to verify that the values the solver came up with are optimal but not quite as easy to come up with schemes that produce schedules with the optimum values.
+In a couple of the cases, I have figured out how to produce the appopriate schedules, but if you have analytic solutions for the others (e.g., the 39 winners/losers case), I would be very curious to hear about it.
 Additionally, if you are an ILP expert and you can tell me how to improve these encodings, I would love to learn.
 
 ## How to Use
@@ -267,7 +266,7 @@ The solver warns it cannot guarantee that this is optimal. However, we can verif
 
 ### Most losing scores: 39 of 42
 
-I wonder what sort of reception this tournament would have.
+I wonder what sort of reception this tournament would have. Incidentally, one can produce a schedule with 39 losing scores by taking the one with 39 winning scores above and reversing the outcome of every single match.
 
 Query: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 600 opt-score --max --lower-score 0 --upper-score 7 --day 14`
 
