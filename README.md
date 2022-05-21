@@ -11,7 +11,7 @@ to generate some amusing tournaments, as well as to have an excuse to play aroun
 This specifically started because I wondered how a sumo round-robin tournament can be scheduled
 while still abiding by the "each wrestler fights once a day, every day" rule.
 In more abstract terms you can phrase this problem as,
-"If you have `N` items, how can you group all `N choose 2` pairs of these items into `N-1` groups
+"If you have $N$ items, how can you group all ${N \choose k}$ pairs of these items into $N-1$ groups
 such that each item appears in each group exactly once?"
 As it turns out [standard round-robin scheduling algorithms](https://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm)
 should be able to work for this, but I made no effort to look them up and spent some time writing all this code instead.
@@ -69,57 +69,59 @@ We also do not model the results of playoffs, partly because the rules about pla
 
 ## Encoding Description
 
-(I would much prefer LaTeX for this. Alas...)
-
 ### Finding a Bout Schedule
 
-Suppose there are `N` wrestlers participating in a `D`-day tournament, where `N` is even and each wrestler fights `M` bouts 
+Suppose there are $N$ wrestlers participating in a $D$-day tournament, where $N$ is even and each wrestler fights $M$ bouts 
 over the course of the tournament (up to 1 per day) and never faces the same opponent more than once in a tournament.
-Each day there are at least `LB` bouts and at most `UB` bouts.
+Each day there are at least $LB$ bouts and at most $UB$ bouts.
 
-We can model these fights using a set of integer variables `f[i][j][d]` 
-where `0 <= f[i][j][d] <= 1`, `0 <= i < N`, `i < j < N`, and `0 <= d < D`.
-If `f[i][j][d]` is 1, that means wrestler `i` faces wrestler `j` on day `d` (all 0-based).
+We can model these fights using a set of integer variables $f_{i, j, d}$
+where $0 \leq f_{i, j, d} \leq 1$, $0 \leq i < N$, $i < j < N$, and $0 \leq d < D$.
+If $f_{i, j, d}$ is 1, that means wrestler $i$ faces wrestler $j$ on day $d$ (all 0-based).
 
-Each wrestler fights at most once a day (if `M` = `D` as in the top two divisions, then this is exactly once),
-which we can encode by adding constraints of the form `sum_{0 <= j < i} f[j][i][d] + sum_{i < j < N} f[i][j][d] <= 1`
-for each `0 <= i < N` and `0 <= d < D`.
+Each wrestler fights at most once a day (if $M = D$ as in the top two divisions, then this is exactly once),
+which we can encode by adding constraints of the form 
+$$\sum_{j = 0}^i f_{j, i, d} + \sum_{j = i}^N f_{i, j, d} <= 1$$
+for each $0 \leq i < N$ and $0 \leq d < D$.
 
-Each wrestler fights a total of `M` times over the course of a tournament. We can encode this by adding constraints of the form
-`sum_{0 <= d < D} sum_{0 <= j < i} f[j][i][d] + sum_{i < j < N} f[i][j][d] == M` for each `0 <= i < N`.
+Each wrestler fights a total of $M$ times over the course of a tournament. We can encode this by adding constraints of the form
+$$\sum_{d = 0}^D \sum_{j = 0}^i f_{j, i, d} + \sum_{j = i}^N f_{i, j, d} = M$$
+for each $0 \leq i < N$.
 
 Any two opponents can face each other at most once in the same tournament, which we can encode with constraints of the form
-`sum_{0 <= d < D} f[i][j][d] <= 1` for all `0 <= i < N` and `i < j < N`.
+$$\sum_{d = 0}^D f_{i, j, d} \leq 1$$
+for all $0 \leq i < N$ and $i < j < N$.
 
-For scheduling purposes, we also enforce that each day of the tournament have at least `LB` total bouts and at most `UB` total bouts 
-(if every wrestler fights every day and there are no absences, then you can set `LB = UB = N/2`).
-This can be encoded using constraints like the following for each `0 <= d < D`:
-```
-sum_{0<=i<N} sum_{i<j<N} f_{i, j, d} <= UB
-sum_{0<=i<N} sum_{i<j<N} f_{i, j, d} >= LB
-```
+For scheduling purposes, we also enforce that each day of the tournament have at least $LB$ total bouts and at most $UB$ total bouts 
+(if every wrestler fights every day and there are no absences, then you can set $LB = UB = N/2$).
+This can be encoded using constraints like the following for each $0 \leq d < D$:
+$$\sum_{i = 0}^N \sum_{j = i}^N f_{i, j, d} \leq UB$$
+$$\sum_{i = 0}^N \sum_{j = i}^N f_{i, j, d} \geq LB$$
 
 ### Modeling Victories and Scores
 
-Given the above, let us define binary variables `w[i][j][d]` for all `0 <= i < N`, `i < j < N`, and `0 <= d < D`
-where `w[i][j][d]` is 1 iff wrestler `i` defeated `j` on day `d` and 0 otherwise.
-(I realize we can probably drop the `d` subscript since each matchup
+Given the above, let us define binary variables $w_{i, j, d}$ for all $0 \leq i < N$, $i < j < N$, and $0 \leq d < D$
+where $w_{i, j, d}$ is 1 iff wrestler $i$ defeated $j$ on day $d$ and 0 otherwise.
+(I realize we can probably drop the $d$ subscript since each matchup
 can only happen once in any tournament, 
 but this made it easier to track the score on any given day.
 Perhaps reformulating this might be easier on the ILP solver.)
 
-For `w[i][j][d]`, we only need one constraint, which is that `w[i][j][d] <= f[i][j][d]` for all valid `i`, `j`, and `d`,
+For $w_{i, j, d}$, we only need one constraint, which is that $w_{i, j, d} \leq f_{i, j, d}$ for all valid $i$, $j$, and $d$,
 since nobody can win a fight that didn't take place (unless Hakuho has developed an interdimensional technique).
-Note that if `f[i][j][d]` is 1 and `w[i][j][d]` is 0, that means `j` won the bout. We will use this shortly.
+Note that if $f_{i, j, d}$ is 1 and $w_{i, j, d}$ is 0, that means $j$ won the bout. We will use this shortly.
 
-To model the scores over the course of the tournament, let us define integer variables `s[i][d]` for all `0 <= i < N`
-and `0 <= d < D`, where `s[i][d]` represents wrestler `i`'s score on day `d`.
-First, let us note that `f[i][j][d] - w[i][j][d]` is 1 iff `i` and `j` fought on day `d` and `i` won
-and 0 iff `i` and `j` did not fight on day `d` or `j` won the fight (since `w[i][j][d]` must be 0 if `f[i][j][d]` is 0).
-Thus, for all `0 <= i < N` and `0 <= d < D`, `sum_{0 <= j < i} (f[j][i][d] - w[j][i][d]) + sum_{i < j < N} w[i][j][d]`
-is 1 iff `i` fought on day `d` and won.
-Thus, for all `0 <= i < N`, we add the constraint `s[i][0] == sum_{0 <= j < i} (f[j][i][0] - w[j][i][0]) + sum_{i < j < N} w[i][j][0]`
-and for all `1 <= d < D`, we add the constraint `s[i][d] == s[i][d-1] + sum_{0 <= j < i} (f[j][i][d] - w[j][i][d]) + sum_{i < j < N} w[i][j][d]`.
+To model the scores over the course of the tournament, let us define integer variables $s_{i, d}$ for all $0 \leq i < N$
+and $0 \leq d < D$, where $s_{i, d}$ represents wrestler $i$'s score on day $d$.
+First, let us note that $f_{i, j, d} - w_{i, j, d}$ is 1 iff $i$ and $j$ fought on day $d$ and $i$ won
+and 0 iff $i$ and $j$ did not fight on day $d$ or $j$ won the fight (since $w_{i, j, d}$ must be 0 if $f_{i, j, d}$ is 0).
+Thus, for all $0 \leq i < N$ and $0 \leq d < D$, 
+$$\sum_{j = 0}^i (f_{j, i, d} - w_{j, i, d}) + \sum_{j = i}^N w_{i, j, d}$$
+is 1 iff $i$ fought on day $d$ and won.
+Thus, for all $0 \leq i < N$, we add the constraint 
+$$s_{i, 0} = \sum_{j = 0}^i (f_{j, i, 0} - w_{j, i, 0}) + \sum_{j = i}^N w_{i, j, 0}$$
+and for all $1 \leq d < D$, we add the constraint 
+$$s_{i, d} = s_{i, d-1} + \sum_{j = 0}^i (f_{j, i, d} - w_{j, i, d}) + \sum_{j = i}^N w_{i, j, d}.$$
 
 ### Conditions Modeled in my Queries
 
@@ -129,18 +131,20 @@ Several of the below queries are concerned about conditions related to the champ
 In sumo, a wrestler is the champion if he has the most wins after the final day's bouts. 
 If more than one wrestler is tied, then there is a tiebreaker playoff between them; we will not model the results of playoffs for now.
 
-To specify that a given wrestler `i` is the champion (up to a tie), we simply need a constraint that the score of `i` on the final day (`D-1`) is greater than or equal to all others: `s[i][D-1] >= s[j][D-1]` for all `0 <= j < N` where `j != i`.
-To exclude ties, we amend the condition to `s[i][D-1] > s[j][D-1]` (or `s[i][D-1] >= s[j][D-1] + 1` in the code, as `mip` only permits `>=` and `<=` constraints).
+To specify that a given wrestler $i$ is the champion (up to a tie), we simply need a constraint that the score of $i$ on the final day ($D-1$) is greater than or equal to all others: $s_{i, D-1} \geq s_{j, D-1}$ for all $0 \leq j < N$ where $j \neq i$.
+To exclude ties, we amend the condition to $s_{i, D-1} > s_{j, D-1}$ (or $s_{i, D-1} \geq s_{j, D-1} + 1$ in the code, as `mip` permits only inclusive constraints).
 
 #### Mathematically Secure Championship
 
-While most championships are decided on the final day and some go to a playoff, sometimes a sumo championship is mathematically secure before the final day. The championship is mathematically secure up to a tie on day `d` if one wrestler has at least as many wins as the other wrestlers have wins plus bouts remaining (change "at least" to "strictly more" to eliminate ties).
+While most championships are decided on the final day and some go to a playoff, sometimes a sumo championship is mathematically secure before the final day. The championship is mathematically secure up to a tie on day $d$ if one wrestler has at least as many wins as the other wrestlers have wins plus bouts remaining (change "at least" to "strictly more" to eliminate ties).
 
-The best possible score wrestler `i` can have after day `d` is `s[i][d] + sum_{d < e <= D} sum_{0 <= j < i} f[j][i][e] + sum_{i < j < N} f[i][j][e]`
-(assuming `i` wins all his remaining bouts).
-Thus to specify that the championship is mathematically secure up to a tie for wrestler `i` with score `S` on day `d`,
-we add a constraint that for all `0 <= k < N` where `k != i`, `S >= s[k][d] + sum{d < e <= D} (sum_{0 <= j < k} f[j][k][e] + sum_{k < j < N} f[k][j][e])`
-(add `+ 1` to the right-hand side to exclude ties).
+The best possible score wrestler $i$ can have after day $d$ is 
+$$s_{i, d} + \sum_{e = d}^{D + 1} \sum_{j = 0}^i f_{j, i, e} + \sum_{j = i}^N f_{i, j, e}$$
+(assuming $i$ wins all his remaining bouts).
+Thus to specify that the championship is mathematically secure up to a tie for wrestler $i$ with score $S$ on day $d$,
+we add a constraint that for all $0 \leq k < N$ where $k \neq i$, 
+$$S \geq s_{k, d} + \sum_{e = d}^{D + 1} (\sum_{j = 0}^k f_{j, k, e} + \sum_{j = k}^N f_{k, j, e})$$
+(add $+ 1$ to the right-hand side to exclude ties).
 
 #### Optimizing for Scores
 
@@ -150,30 +154,32 @@ We can give this as an optimization objective to the solver by defining variable
 that encode whether a value is strictly less than a constant.
 
 Based on [this Stack Exchange question](https://cs.stackexchange.com/questions/51025/cast-to-boolean-for-integer-linear-programming),
-we can use this encoding to define a binary variable `l` such that `l` is 1 iff an integer value `a` is strictly less than a constant `C`.
-Let us additionally assume that `0 <= a <= U` for some upper bound `U`.
-We can enforce this with two constraints: `a - C <= (1-l)*(U+1) - 1` and `-l*(U+1) <= a - C`.
-To verify this, let us consider the three possible cases: `a > C`, `a = C`, and `a < C`.
-If `a > C`, then we get a contradiction if `l = 1`: `a - C <= -1`, but the constraints hold if `l = 0`.
-If `a = C`, then `a - C = 0` and we get the same contradiction if `l = 1`, but the constraints hold if `l = 0`.
-If `a < C`, then we get a contradicition if `l = 0`: `0 <= a - C`. The constraints hold if `l = 1`.
-Thus, let us use the notation `lt(a, C, U)` to define such a variable with these constraints.
+we can use this encoding to define a binary variable $l$ such that $l$ is 1 iff an integer value $a$ is strictly less than a constant $C$.
+Let us additionally assume that $0 \leq a \leq U$ for some upper bound $U$.
+We can enforce this with two constraints: $a - C \leq (1-l)(U+1) - 1$ and $-l(U+1) <= a - C$.
+To verify this, let us consider the three possible cases: $a > C$, $a = C$, and $a < C$.
+If $a > C$, then we get a contradiction if $l = 1$: $a - C \leq -1$, but the constraints hold if $l = 0$.
+If $a = C$, then $a - C = 0$ and we get the same contradiction if $l = 1$, but the constraints hold if $l = 0$.
+If $a < C$, then we get a contradicition if $l = 0$: $0 \leq a - C$. The constraints hold if $l = 1$.
+Thus, let us use the notation $lt(a, C, U)$ to define such a variable with these constraints.
 
-To maximize the number of wrestlers at least a specific score `S` on day `0 <= d < D`,
-we add variables `l[i] = lt(s[i][d], S, M)` for all `0 <= i < N`. 
-Since `l[i]` is 1 iff `s[i][d] < S`, then `1 - l[i]` is 1 iff `s[i][d] >= S`.
-Thus, we set the solver objective to be `maximize sum_{0 <= i < N} (1 - l[i])`
-to maximize the number of wrestlers with a score of at least `S` (analogously for minimizing).
+To maximize the number of wrestlers at least a specific score $S$ on day $0 <= d < D$,
+we add variables $l_i = lt(s_{i, d}, S, M)$ for all $0 \leq i < N$. 
+Since $l_i$ is 1 iff $s_{i, d} < S$, then $1 - l_i$ is 1 iff $s_{i, d} \geq S$.
+Thus, we set the solver objective to be 
+$$\text{maximize} \sum_{i = 0}^N (1 - l_i)$$
+to maximize the number of wrestlers with a score of at least $S$ (analogously for minimizing).
 
 To optimize for the largest tie, we specify that the champion have a particular score
 and maximize the number of wrestlers with a score greater than or equal to that
 (since they are already constrained to have less than or equal to the champion's score,
 this will maximize the number exactly equal to the champion's score).
 
-Similarly, we can optimize for the number of wrestlers with exactly a specific score `S` on day `d`
-by maximizing or minimizing the sum of all `(1 - lt(s[i][d], S, M)) + lt(s[i][d], S+1, M)`
-over all `0 <= i < N`, since `1 - lt(s[i][d], S, M)` is 1 iff `s[i][d] >= S`
-and `lt(s[i][d], S+1, M)` is 1 iff `s[i][d] < S + 1`, i.e., `s[i][d] <= S`.
+Similarly, we can optimize for the number of wrestlers with exactly a specific score $S$ on day $d$
+by maximizing or minimizing the sum of all 
+$$(1 - lt(s_{i, d}, S, M)) + lt(s_{i, d}, S+1, M)$$
+over all $0 \leq i < N$, since $1 - lt(s_{i, d}, S, M)$ is 1 iff $s_{i, d} \geq S$
+and $lt(s_{i, d}, S+1, M)$ is 1 iff $s_{i, d} < S + 1$, i.e., $s_{i, d} \leq S$.
 
 ## Queries of Interest (to me)
 
@@ -208,8 +214,8 @@ I include the resulting schedule [here](schedules/champ_with_9.md), which took 1
 ### Biggest tie with an 8-7 championship: 39 wrestlers
 
 We can conclude that at least one wrestler must have a winning score, since if every wrestler had 7 or fewer wins
-at the end of a 15-day tournament with 21 bouts a day, the total number of wins would be at most `42*7` while
-the total number of bouts is `15*21`. However, it is possible for no wrestler to have more than the just the minimum winning score,
+at the end of a 15-day tournament with 21 bouts a day, the total number of wins would be at most $42 \cdot 7$ while
+the total number of bouts is $15 \cdot 21$. However, it is possible for no wrestler to have more than the just the minimum winning score,
 8-7.
 
 I used the following query to try to optimize for the biggest tie with an 8-7 championship score: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 1200 champ --score 8 --max-tie`
@@ -221,11 +227,11 @@ All but 3 wrestlers ended up tied for the lead. I imagine the rankings committee
 ### Smallest tie with an 8-7 championship: 21 wresters
 
 Since 8-7 is the smallest possible winning score, I was similarly curious to see what would be the smallest possible playoff for it
-rather than the largest possible. In retrospect, the solver result suggests how one can construct such a tournament: Divide the wrestlers into two groups, which we'll call `A` and `B` and pick all matchups from between groups `A` and `B` (you can do this by lining them up in columns and "rotating" the column by one iteration each day). On even days, let's suppose all members of group `A` win their bouts and all members of group `B` lose and on odd days, the opposite is true. Then after day 15, all members of group `A` will have 7 wins and all members of group `B` will have 8 wins.
+rather than the largest possible. In retrospect, the solver result suggests how one can construct such a tournament: Divide the wrestlers into two groups, which we'll call $A$ and $B$ and pick all matchups from between groups $A$ and $B$ (you can do this by lining them up in columns and "rotating" the column by one iteration each day). On even days, let's suppose all members of group $A$ win their bouts and all members of group $B$ lose and on odd days, the opposite is true. Then after day 15, all members of group $A$ will have 7 wins and all members of group $B$ will have 8 wins.
 
 I used the following query to try to optimize for the smallest tie with an 8-7 championship: `python sumo_query.py --names names_files/makuuchi_11_2020.json --conflicts conflicts_files/makuuchi_11_2020.json --time 1200 champ --score 8 --min-tie`
 
-I include the resulting schedule [here](schedules/smallest_playoff_8.md), which took 246 seconds to solve. We can also verify that this is the smallest possible tie with an 8-7 championship: Suppose it were possible to produce a tie of `k < 21` wrestlers at 8-7. Those wrestlers account for `8k` bout victories. The remaining `42-k` wrestlers all have at most 7 victories, so they account for at most `7*(42-k)` bout victories total. The total number of bout victories held by these wrestlers is thus at most `294 + k`. Since `k < 21`, this is at most 314 wins, whereas there are 315 bouts in total: At least 1 bout is not accounted for, giving a contradiction.
+I include the resulting schedule [here](schedules/smallest_playoff_8.md), which took 246 seconds to solve. We can also verify that this is the smallest possible tie with an 8-7 championship: Suppose it were possible to produce a tie of $k < 21$ wrestlers at 8-7. Those wrestlers account for $8k$ bout victories. The remaining $42-k$ wrestlers all have at most 7 victories, so they account for at most $7(42-k)$ bout victories total. The total number of bout victories held by these wrestlers is thus at most $294 + k$. Since $k < 21$, this is at most 314 wins, whereas there are 315 bouts in total: At least 1 bout is not accounted for, giving a contradiction.
 
 ### Biggest tie with a 15-0 score: 21 wresters
 
@@ -296,11 +302,11 @@ I used the following query: `python sumo_query.py -k 0 --time 600 champ --score 
 and, after about 180 seconds, the solver concluded that the linear reduction of the integer linear program
 was infeasible. So day 10 seems to be the earliest that the championship can be mathematically secure up to a tie.
 
-We can verify this with the following reasoning: Suppose some wrestler `C` is to be the mathematically secure champion on day 9.
-`C`'s score on day 9 is at most 9. Up to day 9 there have been 189 bouts and so 189 total wins. At least 180 of those wins
-have been given to other wrestlers. On average, wrestlers other than `C` have at least 4.3 wins, which means at least one
-of them must have at least 5 wins; let this wrestler be `W`. If `W` wins all 6 of his remaining bouts and `C` loses all 6
-of his remaining bouts, then `W`'s score is at least 11 while `C` will still have a score of 9.
+We can verify this with the following reasoning: Suppose some wrestler $C$ is to be the mathematically secure champion on day 9.
+$C$'s score on day 9 is at most 9. Up to day 9 there have been 189 bouts and so 189 total wins. At least 180 of those wins
+have been given to other wrestlers. On average, wrestlers other than $C$ have at least 4.3 wins, which means at least one
+of them must have at least 5 wins; let this wrestler be $W$. If $W$ wins all 6 of his remaining bouts and $C$ loses all 6
+of his remaining bouts, then $W$'s score is at least 11 while $C$ will still have a score of 9.
 
 ### Mathematically secure championship (excluding ties) on day 10: Infeasible!
 
@@ -308,7 +314,7 @@ I used the following query: `python sumo_query.py -k 0 --time 600 champ --score 
 After only about 14 seconds, the solver concluded that the linear reduction was infeasible, so day 11
 seems to be the earliest that the championship can be secured outright.
 
-We can use similar reasoning to the above: Suppose some wrestler `C` has the championship mathematically secure, not permitting ties, on day 10.
-Then `C` has at most 10 wins. Up to day 10, there have been 210 bouts and so 210 total wins, of which 200 have been given to other wrestlers.
-On average, wrestlers other than `C` have 4.9 wins, meaning at least one (let's call him `W`) has at least 5 wins. 
-If `C` loses all 5 of his remaining bouts and `W` wins all 5, then `C` and `W` are tied at 10 wins, contradicting the premise.
+We can use similar reasoning to the above: Suppose some wrestler $C$ has the championship mathematically secure, not permitting ties, on day 10.
+Then $C$ has at most 10 wins. Up to day 10, there have been 210 bouts and so 210 total wins, of which 200 have been given to other wrestlers.
+On average, wrestlers other than $C$ have 4.9 wins, meaning at least one (let's call him $W$) has at least 5 wins. 
+If $C$ loses all 5 of his remaining bouts and $W$ wins all 5, then $C$ and $W$ are tied at 10 wins, contradicting the premise.
