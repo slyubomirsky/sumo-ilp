@@ -81,7 +81,7 @@ If $f_{i, j, d}$ is 1, that means wrestler $i$ faces wrestler $j$ on day $d$ (al
 
 Each wrestler fights at most once a day (if $M = D$ as in the top two divisions, then this is exactly once),
 which we can encode by adding constraints of the form 
-$$\sum_{j = 0}^i f_{j, i, d} + \sum_{j = i}^N f_{i, j, d} <= 1$$
+$$\sum_{j = 0}^i f_{j, i, d} + \sum_{j = i}^N f_{i, j, d} \leq 1$$
 for each $0 \leq i < N$ and $0 \leq d < D$.
 
 Each wrestler fights a total of $M$ times over the course of a tournament. We can encode this by adding constraints of the form
@@ -156,14 +156,14 @@ that encode whether a value is strictly less than a constant.
 Based on [this Stack Exchange question](https://cs.stackexchange.com/questions/51025/cast-to-boolean-for-integer-linear-programming),
 we can use this encoding to define a binary variable $l$ such that $l$ is 1 iff an integer value $a$ is strictly less than a constant $C$.
 Let us additionally assume that $0 \leq a \leq U$ for some upper bound $U$.
-We can enforce this with two constraints: $a - C \leq (1-l)(U+1) - 1$ and $-l(U+1) <= a - C$.
+We can enforce this with two constraints: $a - C \leq (1-l)(U+1) - 1$ and $-l(U+1) \leq a - C$.
 To verify this, let us consider the three possible cases: $a > C$, $a = C$, and $a < C$.
 If $a > C$, then we get a contradiction if $l = 1$: $a - C \leq -1$, but the constraints hold if $l = 0$.
 If $a = C$, then $a - C = 0$ and we get the same contradiction if $l = 1$, but the constraints hold if $l = 0$.
 If $a < C$, then we get a contradicition if $l = 0$: $0 \leq a - C$. The constraints hold if $l = 1$.
 Thus, let us use the notation $lt(a, C, U)$ to define such a variable with these constraints.
 
-To maximize the number of wrestlers at least a specific score $S$ on day $0 <= d < D$,
+To maximize the number of wrestlers at least a specific score $S$ on day $0 \leq d < D$,
 we add variables $l_i = lt(s_{i, d}, S, M)$ for all $0 \leq i < N$. 
 Since $l_i$ is 1 iff $s_{i, d} < S$, then $1 - l_i$ is 1 iff $s_{i, d} \geq S$.
 Thus, we set the solver objective to be 
