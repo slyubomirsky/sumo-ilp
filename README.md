@@ -85,7 +85,7 @@ $$\sum_{j = 0}^{i - 1} f_{j, i, d} + \sum_{j = i + 1}^{N - 1} f_{i, j, d} \leq 1
 for each $0 \leq i < N$ and $0 \leq d < D$.
 
 Each wrestler fights a total of $M$ times over the course of a tournament. We can encode this by adding constraints of the form
-$$\sum_{d = 0}^{D - 1} \sum_{j = 0}^{i - 1} f_{j, i, d} + \sum_{j = i + 1}^{N - 1} f_{i, j, d} = M$$
+$$\sum_{d = 0}^{D - 1} (\sum_{j = 0}^{i - 1} f_{j, i, d} + \sum_{j = i + 1}^{N - 1} f_{i, j, d}) = M$$
 for each $0 \leq i < N$.
 
 Any two opponents can face each other at most once in the same tournament, which we can encode with constraints of the form
@@ -139,7 +139,7 @@ To exclude ties, we amend the condition to $s_{i, D-1} > s_{j, D-1}$ (or $s_{i, 
 While most championships are decided on the final day and some go to a playoff, sometimes a sumo championship is mathematically secure before the final day. The championship is mathematically secure up to a tie on day $d$ if one wrestler has at least as many wins as the other wrestlers have wins plus bouts remaining (change "at least" to "strictly more" to eliminate ties).
 
 The best possible score wrestler $i$ can have after day $d$ is 
-$$s_{i, d} + \sum_{e = d + 1}^{D - 1} \sum_{j = 0}^{i - 1} f_{j, i, e} + \sum_{j = i + 1}^{N - 1} f_{i, j, e}$$
+$$s_{i, d} + \sum_{e = d + 1}^{D - 1} (\sum_{j = 0}^{i - 1} f_{j, i, e} + \sum_{j = i + 1}^{N - 1} f_{i, j, e})$$
 (assuming $i$ wins all his remaining bouts).
 Thus to specify that the championship is mathematically secure up to a tie for wrestler $i$ with score $S$ on day $d$,
 we add a constraint that for all $0 \leq k < N$ where $k \neq i$, 
