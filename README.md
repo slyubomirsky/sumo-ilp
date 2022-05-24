@@ -81,22 +81,22 @@ If $f_{i, j, d}$ is 1, that means wrestler $i$ faces wrestler $j$ on day $d$ (al
 
 Each wrestler fights at most once a day (if $M = D$ as in the top two divisions, then this is exactly once),
 which we can encode by adding constraints of the form 
-$$\sum_{j = 0}^i f_{j, i, d} + \sum_{j = i}^N f_{i, j, d} \leq 1$$
+$$\sum_{j = 0}^{i - 1} f_{j, i, d} + \sum_{j = i + 1}^{N - 1} f_{i, j, d} \leq 1$$
 for each $0 \leq i < N$ and $0 \leq d < D$.
 
 Each wrestler fights a total of $M$ times over the course of a tournament. We can encode this by adding constraints of the form
-$$\sum_{d = 0}^D \sum_{j = 0}^i f_{j, i, d} + \sum_{j = i}^N f_{i, j, d} = M$$
+$$\sum_{d = 0}^{D - 1} \sum_{j = 0}^{i - 1} f_{j, i, d} + \sum_{j = i + 1}^{N - 1} f_{i, j, d} = M$$
 for each $0 \leq i < N$.
 
 Any two opponents can face each other at most once in the same tournament, which we can encode with constraints of the form
-$$\sum_{d = 0}^D f_{i, j, d} \leq 1$$
+$$\sum_{d = 0}^{D - 1} f_{i, j, d} \leq 1$$
 for all $0 \leq i < N$ and $i < j < N$.
 
 For scheduling purposes, we also enforce that each day of the tournament have at least $LB$ total bouts and at most $UB$ total bouts 
 (if every wrestler fights every day and there are no absences, then you can set $LB = UB = N/2$).
 This can be encoded using constraints like the following for each $0 \leq d < D$:
-$$\sum_{i = 0}^N \sum_{j = i}^N f_{i, j, d} \leq UB$$
-$$\sum_{i = 0}^N \sum_{j = i}^N f_{i, j, d} \geq LB$$
+$$\sum_{i = 0}^{N - 1} \sum_{j = i + 1}^{N - 1} f_{i, j, d} \leq UB$$
+$$\sum_{i = 0}^{N - 1} \sum_{j = i + 1}^{N - 1} f_{i, j, d} \geq LB$$
 
 ### Modeling Victories and Scores
 
@@ -116,12 +116,12 @@ and $0 \leq d < D$, where $s_{i, d}$ represents wrestler $i$'s score on day $d$.
 First, let us note that $f_{i, j, d} - w_{i, j, d}$ is 1 iff $i$ and $j$ fought on day $d$ and $i$ won
 and 0 iff $i$ and $j$ did not fight on day $d$ or $j$ won the fight (since $w_{i, j, d}$ must be 0 if $f_{i, j, d}$ is 0).
 Thus, for all $0 \leq i < N$ and $0 \leq d < D$, 
-$$\sum_{j = 0}^i (f_{j, i, d} - w_{j, i, d}) + \sum_{j = i}^N w_{i, j, d}$$
+$$\sum_{j = 0}^{i - 1} (f_{j, i, d} - w_{j, i, d}) + \sum_{j = i + 1}^{N - 1} w_{i, j, d}$$
 is 1 iff $i$ fought on day $d$ and won.
 Thus, for all $0 \leq i < N$, we add the constraint 
-$$s_{i, 0} = \sum_{j = 0}^i (f_{j, i, 0} - w_{j, i, 0}) + \sum_{j = i}^N w_{i, j, 0}$$
+$$s_{i, 0} = \sum_{j = 0}^{i - 1} (f_{j, i, 0} - w_{j, i, 0}) + \sum_{j = i + 1}^{N - 1} w_{i, j, 0}$$
 and for all $1 \leq d < D$, we add the constraint 
-$$s_{i, d} = s_{i, d-1} + \sum_{j = 0}^i (f_{j, i, d} - w_{j, i, d}) + \sum_{j = i}^N w_{i, j, d}.$$
+$$s_{i, d} = s_{i, d-1} + \sum_{j = 0}^{i - 1} (f_{j, i, d} - w_{j, i, d}) + \sum_{j = i + 1}^{N - 1} w_{i, j, d}.$$
 
 ### Conditions Modeled in my Queries
 
@@ -139,12 +139,12 @@ To exclude ties, we amend the condition to $s_{i, D-1} > s_{j, D-1}$ (or $s_{i, 
 While most championships are decided on the final day and some go to a playoff, sometimes a sumo championship is mathematically secure before the final day. The championship is mathematically secure up to a tie on day $d$ if one wrestler has at least as many wins as the other wrestlers have wins plus bouts remaining (change "at least" to "strictly more" to eliminate ties).
 
 The best possible score wrestler $i$ can have after day $d$ is 
-$$s_{i, d} + \sum_{e = d}^{D + 1} \sum_{j = 0}^i f_{j, i, e} + \sum_{j = i}^N f_{i, j, e}$$
+$$s_{i, d} + \sum_{e = d + 1}^{D - 1} \sum_{j = 0}^{i - 1} f_{j, i, e} + \sum_{j = i + 1}^{N - 1} f_{i, j, e}$$
 (assuming $i$ wins all his remaining bouts).
 Thus to specify that the championship is mathematically secure up to a tie for wrestler $i$ with score $S$ on day $d$,
 we add a constraint that for all $0 \leq k < N$ where $k \neq i$, 
-$$S \geq s_{k, d} + \sum_{e = d}^{D + 1} (\sum_{j = 0}^k f_{j, k, e} + \sum_{j = k}^N f_{k, j, e})$$
-(add $+ 1$ to the right-hand side to exclude ties).
+$$S \geq s_{k, d} + \sum_{e = d + 1}^{D - 1} (\sum_{j = 0}^{k - 1} f_{j, k, e} + \sum_{j = k + 1}^{N - 1} f_{k, j, e})$$
+(add "$+ 1$" to the right-hand side of the inequality to exclude ties).
 
 #### Optimizing for Scores
 
